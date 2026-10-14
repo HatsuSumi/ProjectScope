@@ -174,7 +174,7 @@
                   <TextBlock Text="文件统计" FontWeight="SemiBold" />
                   <TextBlock Text="总文件数：27 个&#10;  C#文件：15 个&#10;  XML文件：2 个&#10;  JavaScript文件：1 个&#10;  Markdown文档：1 个&#10;  其他文件：8 个" />
                   <TextBlock Text="代码规模" FontWeight="SemiBold" Margin="0,6,0,0" />
-                  <TextBlock Text="代码总行数：1,860 行（不含空行、注释）&#10;  C#：1,505 行（80.9%）&#10;  XML：343 行（18.4%）&#10;  JavaScript：12 行（0.7%）&#10;&#10;字符总数：1,131,063 字符（不含注释）&#10;  C#：86,271 字符（7.6%）&#10;  XML：22,417 字符（2.0%）&#10;  JavaScript：1,022,375 字符（90.4%）" TextWrapping="Wrap" />
+                  <TextBlock Text="代码总行数：1,873 行（不含空行、注释）&#10;  C#：1,510 行（80.6%）&#10;  XML：351 行（18.7%）&#10;  JavaScript：12 行（0.7%）&#10;&#10;字符总数：1,132,212 字符（不含注释）&#10;  C#：86,530 字符（7.6%）&#10;  XML：23,307 字符（2.1%）&#10;  JavaScript：1,022,375 字符（90.3%）" TextWrapping="Wrap" />
                   <TextBlock Text="资源文件" FontWeight="SemiBold" Margin="0,6,0,0" />
                   <TextBlock Text="资源文件总数：0 个&#10;资源文件总大小：0 B" />
                 </StackPanel>
