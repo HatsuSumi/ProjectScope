@@ -1,0 +1,132 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="using:ProjectScope.App"
+        xmlns:media="using:Avalonia.Media"
+        x:Class="ProjectScope.App.MainWindow" x:Name="RootWindow" x:DataType="local:MainViewModel"
+        Title="ProjectScope" Width="1180" Height="820" MinWidth="860" MinHeight="620"
+        Background="{DynamicResource WindowBackgroundBrush}" FontSize="14">
+  <Window.Styles>
+    <Style Selector="TextBlock.title"><Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" /></Style>
+    <Style Selector="TextBlock.secondary"><Setter Property="Foreground" Value="{DynamicResource SecondaryTextBrush}" /></Style>
+    <Style Selector="Border.theme-menu">
+      <Setter Property="Background" Value="{DynamicResource CardBackgroundBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource CardBorderBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="10" />
+      <Setter Property="BoxShadow" Value="0 8 24 #55000000" />
+      <Setter Property="Padding" Value="6" />
+    </Style>
+    <Style Selector="Button.theme-trigger">
+      <Setter Property="Background" Value="{DynamicResource CardBackgroundBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource CardBorderBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="8" />
+      <Setter Property="Template">
+        <ControlTemplate>
+          <ContentPresenter Name="ThemeTriggerPresenter"
+                            Content="{TemplateBinding Content}"
+                            ContentTemplate="{TemplateBinding ContentTemplate}"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="{TemplateBinding CornerRadius}"
+                            Padding="{TemplateBinding Padding}"
+                            HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                            VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}" />
+        </ControlTemplate>
+      </Setter>
+      <Setter Property="Transitions">
+        <Transitions>
+          <BrushTransition Property="Background" Duration="0:0:0.18" />
+          <BrushTransition Property="Foreground" Duration="0:0:0.18" />
+          <BrushTransition Property="BorderBrush" Duration="0:0:0.18" />
+        </Transitions>
+      </Setter>
+    </Style>
+    <Style Selector="Button.theme-trigger:pointerover">
+      <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+      <Setter Property="Foreground" Value="White" />
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+    </Style>
+    <Style Selector="Button.theme-option">
+      <Setter Property="HorizontalContentAlignment" Value="Left" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
+      <Setter Property="Padding" Value="12,8" />
+    </Style>
+  </Window.Styles>
+  <Grid RowDefinitions="Auto,Auto,*,Auto" Margin="28" RowSpacing="18">
+    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="20">
+      <StackPanel Spacing="4">
+        <TextBlock Classes="title" Text="ProjectScope" FontSize="30" FontWeight="Bold" />
+        <TextBlock Classes="secondary" Text="了解代码规模，理清项目结构。" />
+      </StackPanel>
+      <Grid Grid.Column="1" Width="150" VerticalAlignment="Center">
+        <Button x:Name="ThemeMenuButton" Classes="theme-trigger" Command="{Binding ToggleThemeMenuCommand}" HorizontalContentAlignment="Stretch" Padding="12,8">
+          <Grid ColumnDefinitions="*,Auto">
+            <TextBlock Text="{Binding ThemePreference.Label}" />
+            <Path Grid.Column="1" Data="M 2,4 L 8,10 L 14,4" Stroke="{Binding #ThemeMenuButton.Foreground}" StrokeThickness="1.8" Width="16" Height="14" Stretch="Uniform" RenderTransformOrigin="50%,50%" Margin="12,0,0,0">
+              <Path.RenderTransform>
+                <RotateTransform Angle="{Binding ThemeMenuArrowAngle}" />
+              </Path.RenderTransform>
+            </Path>
+          </Grid>
+        </Button>
+        <Popup ShouldUseOverlayLayer="True" IsOpen="{Binding ThemeMenuOpen}" DataContext="{Binding DataContext, ElementName=RootWindow}" Placement="BottomEdgeAlignedLeft" PlacementTarget="{Binding #ThemeMenuButton}" HorizontalOffset="0" VerticalOffset="6">
+          <Border x:Name="ThemeMenuPanel" Classes="theme-menu" Opacity="{Binding ThemeMenuOpacity}">
+            <Border.RenderTransform>
+              <media:TranslateTransform Y="{Binding ThemeMenuOffset}" />
+            </Border.RenderTransform>
+            <StackPanel>
+              <Button Classes="theme-option" Content="跟随系统" Command="{Binding SelectThemeCommand}" CommandParameter="{Binding Source={x:Static local:ThemePreferenceValues.System}}" />
+              <Button Classes="theme-option" Content="浅色" Command="{Binding SelectThemeCommand}" CommandParameter="{Binding Source={x:Static local:ThemePreferenceValues.Light}}" />
+              <Button Classes="theme-option" Content="深色" Command="{Binding SelectThemeCommand}" CommandParameter="{Binding Source={x:Static local:ThemePreferenceValues.Dark}}" />
+              <Button Classes="theme-option" Content="赛博朋克" Command="{Binding SelectThemeCommand}" CommandParameter="{Binding Source={x:Static local:ThemePreferenceValues.Cyberpunk}}" />
+            </StackPanel>
+          </Border>
+        </Popup>
+      </Grid>
+    </Grid>
+    <Border Grid.Row="1" Classes="card">
+      <StackPanel Spacing="14">
+        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12" IsEnabled="{Binding CanConfigure}">
+          <TextBox Text="{Binding RootPath}" Watermark="项目根目录" />
+          <Button Grid.Column="1" Classes="folder-picker" Content="选择文件夹" Click="BrowseClicked" />
+        </Grid>
+        <WrapPanel IsEnabled="{Binding CanConfigure}">
+          <CheckBox Content="统计资源" IsChecked="{Binding IncludeAssets}" Margin="0,0,20,0" />
+          <CheckBox Content="包含隐藏文件" IsChecked="{Binding IncludeHidden}" Margin="0,0,20,0" />
+          <CheckBox Content="取消默认忽略" IsChecked="{Binding DisableDefaultIgnores}" Margin="0,0,20,0" />
+          <CheckBox Content="扩展名细分" IsChecked="{Binding IncludeDetails}" Margin="0,0,20,0" />
+          <CheckBox Content="文件清单" IsChecked="{Binding IncludeFileList}" />
+        </WrapPanel>
+        <Grid ColumnDefinitions="Auto,Auto,*" ColumnSpacing="12">
+          <Button Classes="primary" Content="开始扫描" Command="{Binding ScanCommand}" />
+          <Button Grid.Column="1" Content="取消扫描" Command="{Binding ScanCancelCommand}" />
+          <TextBlock Grid.Column="2" Classes="secondary" Text="{Binding Summary}" VerticalAlignment="Center" HorizontalAlignment="Right" />
+        </Grid>
+      </StackPanel>
+    </Border>
+    <Border Grid.Row="2" Classes="card">
+      <Grid RowDefinitions="Auto,*" RowSpacing="14">
+        <WrapPanel IsEnabled="{Binding HasResult}">
+          <Button Content="导出 Markdown" Tag="Markdown" Click="ExportClicked" Margin="0,0,8,0" />
+          <Button Content="导出 JSON" Tag="Json" Click="ExportClicked" Margin="0,0,8,0" />
+          <Button Content="导出日志" Tag="Text" Click="ExportClicked" Margin="0,0,8,0" />
+          <Button Content="导出 HTML" Tag="Html" Click="ExportClicked" Margin="0,0,8,0" />
+          <Button Content="保存目录树" Tag="DirectoryTree" Click="ExportClicked" Margin="0,0,8,0" />
+          <Button Content="复制目录树" Click="CopyTreeClicked" />
+        </WrapPanel>
+        <TabControl Grid.Row="1">
+          <TabItem Header="统计报告"><TextBox Classes="report" Text="{Binding Report}" IsReadOnly="True" AcceptsReturn="True" TextWrapping="NoWrap" /></TabItem>
+          <TabItem Header="目录树"><TextBox Classes="report" Text="{Binding DirectoryTree}" IsReadOnly="True" AcceptsReturn="True" TextWrapping="NoWrap" /></TabItem>
+          <TabItem Header="文件清单"><TextBox Classes="report" Text="{Binding FileList}" IsReadOnly="True" AcceptsReturn="True" TextWrapping="NoWrap" /></TabItem>
+          <TabItem Header="细分统计"><TextBox Classes="report" Text="{Binding Details}" IsReadOnly="True" AcceptsReturn="True" TextWrapping="NoWrap" /></TabItem>
+          <TabItem Header="扫描日志"><TextBox Classes="report" Text="{Binding Log}" IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap" /></TabItem>
+        </TabControl>
+      </Grid>
+    </Border>
+    <TextBlock Grid.Row="3" Classes="secondary" Text="{Binding Status}" TextTrimming="CharacterEllipsis" />
+  </Grid>
+</Window>

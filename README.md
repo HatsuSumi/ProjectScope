@@ -1,4 +1,4 @@
-# Project Stats
+# ProjectScope
 
 跨平台桌面项目统计工具，用于分析项目文件、代码规模和资源占用，并生成清晰易读的统计报告。
 
@@ -40,48 +40,74 @@
 - 导出 JSON 机器可读数据
 - 导出 Markdown 格式统计结果
 - 导出文本日志
-- 生成 HTML 可视化报告
+- 生成自包含 HTML 可视化报告
+- 导出或复制项目目录树
 - 支持直接打开生成的 HTML 报告
 
 ## 项目结构
 
 ```text
-ProjectStats/
+ProjectScope/
 ├── README.md
-├── src/
-│   ├── ProjectStats.App/             # Avalonia 桌面应用
-│   ├── ProjectStats.Core/            # 统计模型与核心业务逻辑
-│   ├── ProjectStats.Infrastructure/  # 文件扫描与报告导出
-│   └── ProjectStats.Tests/           # 单元测试
-└── ProjectStats.sln                  # .NET 解决方案
+├── ProjectScope.sln
+├── Directory.Build.props
+├── Directory.Packages.props
+└── src/
+    ├── ProjectScope.App/             # Avalonia 桌面应用与 MVVM 界面
+    ├── ProjectScope.Core/            # 统计模型、类型识别、注释处理与目录树
+    ├── ProjectScope.Infrastructure/  # 文件扫描与报告导出
+    └── ProjectScope.Tests/           # 核心统计和扫描测试
 ```
 
 ## 📊 项目规模
 
 ### 文件统计
 
-- **当前文件数**：2 个
-  - Python 文件：1 个
-  - Markdown 文档：1 个
+- **总文件数**：25 个
+  - C#文件：14 个
+  - 其他文件：10 个
+  - Markdown文档：1 个
 
 ### 代码规模
 
-- **代码总行数**：2,849 行（不含空行、注释）
-  - Python：2,793 行
-  - Markdown：56 行
+- **代码总行数**：876 行（不含空行、注释）
+  - C#：876 行（100.0%）
 
-- **字符总数**：待统计
+- **字符总数**：50,862 字符（不含注释）
+  - C#：50,862 字符（100.0%）
 
 ### 资源文件
 
 - **资源文件总数**：0 个
 - **资源文件总大小**：0 B
 
-> 数据来源：以上项目规模数据基于当前项目目录统计生成。随着 Avalonia 应用开发推进，数据会持续更新。
+> 数据来源：以上所有项目规模数据均基于当前项目目录自动统计生成。
 
 ## 🏠 **开发环境**
 
 本项目为居家开发，没有工作，也没有收入。在孤独和抑郁症的陪伴下，独自完成项目的设计、开发与维护。
+
+## 开发
+
+需要安装 .NET 8 SDK 或兼容的更高版本 SDK。
+
+构建解决方案：
+
+```bash
+dotnet build ProjectScope.sln
+```
+
+运行桌面应用：
+
+```bash
+dotnet run --project src/ProjectScope.App/ProjectScope.App.csproj
+```
+
+运行测试：
+
+```bash
+dotnet test ProjectScope.sln
+```
 
 ## 技术栈
 

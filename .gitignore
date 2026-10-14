@@ -1,0 +1,5 @@
+.specstory/
+**/bin/
+**/obj/
+.vs/
+TestResults/
