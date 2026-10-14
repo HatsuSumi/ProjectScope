@@ -91,9 +91,11 @@
     <Border Grid.Row="1" Classes="card">
       <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
       <StackPanel Spacing="14">
-        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12" IsEnabled="{Binding CanConfigure}">
+        <Grid ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="10" IsEnabled="{Binding CanConfigure}">
           <TextBox Text="{Binding RootPath}" Watermark="项目根目录" />
           <Button Grid.Column="1" Classes="folder-picker" Content="选择文件夹" Click="BrowseClicked" />
+          <Button Grid.Column="2" Content="保存配置" Command="{Binding SaveConfigurationCommand}" />
+          <Button Grid.Column="3" Content="加载配置" Click="LoadConfigurationClicked" />
         </Grid>
         <WrapPanel IsEnabled="{Binding CanConfigure}">
           <CheckBox Content="统计资源（统计非代码文件（图片/音频/模型/二进制等））" IsChecked="{Binding IncludeAssets}" Margin="0,0,20,0" />

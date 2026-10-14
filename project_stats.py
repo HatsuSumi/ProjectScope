@@ -2111,6 +2111,11 @@ def format_directory_tree(root_name: str, paths: Iterable[str]) -> str:
 
 def generate_html_report(data: Dict, output_path: Path) -> None:
     import json
+
+    chart_runtime_path = Path(__file__).resolve().parent / "vendor" / "echarts.min.js"
+    if not chart_runtime_path.is_file():
+        raise FileNotFoundError(f"本地 ECharts 脚本不存在: {chart_runtime_path}")
+    chart_runtime = chart_runtime_path.read_text(encoding="utf-8")
     
     # 嵌入 JSON 数据
     json_data = json.dumps(data, ensure_ascii=False)
@@ -2121,7 +2126,7 @@ def generate_html_report(data: Dict, output_path: Path) -> None:
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>项目代码统计报告</title>
-    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <script>__ECHARTS_SCRIPT__</script>
     <style>
         :root { --bg: #f4f6f8; --card-bg: #fff; --text: #2c3e50; --accent: #3498db; }
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; }
@@ -2386,7 +2391,7 @@ def generate_html_report(data: Dict, output_path: Path) -> None:
 </html>
 """
     # 替换占位符
-    html_content = html_template.replace('__JSON_DATA__', json_data)
+    html_content = html_template.replace('__ECHARTS_SCRIPT__', chart_runtime).replace('__JSON_DATA__', json_data)
     output_path.write_text(html_content, encoding='utf-8')
 
 

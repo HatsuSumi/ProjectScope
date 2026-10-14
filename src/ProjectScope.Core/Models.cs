@@ -13,6 +13,13 @@ public sealed record ScanOptions(bool IncludeAssets, bool IncludeHidden)
     public bool ExcludeBlankLinesAndComments { get; init; } = true;
 }
 public sealed record ScanProgress(string CurrentPath, long ProcessedFiles);
+public sealed record ProjectConfiguration(
+    string RootPath,
+    bool IncludeAssets,
+    bool IncludeHidden,
+    bool ExcludeBlankLinesAndComments,
+    IReadOnlyList<string> IgnoredDirectoryNames,
+    IReadOnlyList<string> IgnoredPaths);
 public sealed record ScanResult(string RootPath, int TotalFiles, IReadOnlyList<TypeCount> FileCounts, IReadOnlyList<CodeTypeCount> CodeTypes, IReadOnlyList<AssetTypeCount> AssetTypes, long TotalCodeFiles, long TotalCodeLines, long TotalCodeCharacters, int TotalAssetFiles, long TotalAssetBytes, IReadOnlyList<string> Files, string DirectoryTree, IReadOnlyList<DetailCount> Details, IReadOnlyList<DetailCount> AssetDetails);
 
 public sealed class ScanRequest

@@ -1,3 +1,4 @@
+using System.Reflection;
 using System.Globalization;
 using System.Text;
 using System.Text.Json;
@@ -118,7 +119,17 @@ public sealed class ReportExporter
             directory_tree = result.DirectoryTree
         };
         var json = JsonSerializer.Serialize(payload, new JsonSerializerOptions { Encoder = System.Text.Encodings.Web.JavaScriptEncoder.Default });
-        return HtmlTemplate.Replace("__JSON_DATA__", json, StringComparison.Ordinal);
+        var charts = ReadEmbeddedChartRuntime();
+        return HtmlTemplate.Replace("__ECHARTS_SCRIPT__", charts, StringComparison.Ordinal)
+            .Replace("__JSON_DATA__", json, StringComparison.Ordinal);
+    }
+
+    private static string ReadEmbeddedChartRuntime()
+    {
+        using var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("ProjectScope.Infrastructure.echarts.min.js")
+            ?? throw new InvalidOperationException("The embedded ECharts runtime is missing.");
+        using var reader = new StreamReader(stream, Encoding.UTF8);
+        return reader.ReadToEnd();
     }
 
     private static IReadOnlyList<CodeTypeCount> CodeRows(ScanResult result) => result.CodeTypes
@@ -133,7 +144,7 @@ public sealed class ReportExporter
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>项目代码统计报告</title>
-<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+<script>__ECHARTS_SCRIPT__</script>
 <style>
 :root{--bg:#f4f6f8;--card:#fff;--text:#2c3e50;--accent:#3498db}*{box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;background:var(--bg);color:var(--text);margin:0;padding:20px}.container{max-width:1200px;margin:0 auto}h1{text-align:center;margin-bottom:30px}.dashboard{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:20px;margin-bottom:30px}.card,.chart-box{background:var(--card);padding:20px;border-radius:8px;box-shadow:0 2px 12px rgba(0,0,0,.05)}.card{text-align:center}.card h3{margin:0 0 10px;font-size:14px;color:#7f8c8d;text-transform:uppercase}.card .num{font-size:32px;font-weight:bold;color:var(--accent)}.card .sub{font-size:12px;color:#95a5a6;margin-top:5px}.charts-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(500px,1fr));gap:20px}.chart-box[style]{grid-column:1/-1}.chart-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:15px}.chart-title{font-size:18px;font-weight:bold;margin:0}.chart-controls select{padding:4px 8px;border-radius:4px;border:1px solid #ddd}.chart-container{height:400px;width:100%}.tree-box{margin-top:20px;background:var(--card);padding:20px;border-radius:8px;box-shadow:0 2px 12px rgba(0,0,0,.05)}.tree-box pre{margin:0;overflow:auto;font-family:"Cascadia Mono",Consolas,"SFMono-Regular",monospace;font-size:13px;line-height:1.55;white-space:pre;color:var(--text)}@media(max-width:600px){.charts-grid{grid-template-columns:1fr}.chart-box{min-width:0}.chart-container{height:320px}}
 </style>

@@ -243,6 +243,38 @@ public sealed class StatisticsTests
     }
 
     [Fact]
+    public async Task ProjectConfigurationStoreRoundTripsAllScanOptions()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "ProjectScope.Tests", Guid.NewGuid().ToString("N"));
+        var path = Path.Combine(root, ".projectscope.json");
+        var configuration = new ProjectConfiguration(
+            root,
+            IncludeAssets: false,
+            IncludeHidden: true,
+            ExcludeBlankLinesAndComments: false,
+            IgnoredDirectoryNames: new[] { "bin", "obj" },
+            IgnoredPaths: new[] { "/cache/", @"regex:\.generated\.cs$" });
+        var store = new ProjectConfigurationStore();
+        try
+        {
+            await store.SaveAsync(path, configuration);
+            var loaded = await store.LoadAsync(path);
+
+            Assert.Equal(configuration.RootPath, loaded.RootPath);
+            Assert.Equal(configuration.IncludeAssets, loaded.IncludeAssets);
+            Assert.Equal(configuration.IncludeHidden, loaded.IncludeHidden);
+            Assert.Equal(configuration.ExcludeBlankLinesAndComments, loaded.ExcludeBlankLinesAndComments);
+            Assert.Equal(configuration.IgnoredDirectoryNames, loaded.IgnoredDirectoryNames);
+            Assert.Equal(configuration.IgnoredPaths, loaded.IgnoredPaths);
+            Assert.Contains("\"IncludeAssets\": false", await File.ReadAllTextAsync(path));
+        }
+        finally
+        {
+            if (Directory.Exists(root)) Directory.Delete(root, true);
+        }
+    }
+
+    [Fact]
     public void ReportTotalsDoNotDoubleCountAssetFiles()
     {
         var result = new ScanResult("/demo", 10, Array.Empty<TypeCount>(), Array.Empty<CodeTypeCount>(), Array.Empty<AssetTypeCount>(), 0, 0, 0, 3, 128, Array.Empty<string>(), "Demo/\n", Array.Empty<DetailCount>(), Array.Empty<DetailCount>());
@@ -260,7 +292,10 @@ public sealed class StatisticsTests
         var result = new ScanResult("/demo", 0, Array.Empty<TypeCount>(), Array.Empty<CodeTypeCount>(), Array.Empty<AssetTypeCount>(), 0, 0, 0, 0, 0, Array.Empty<string>(), "Demo/\n", Array.Empty<DetailCount>(), Array.Empty<DetailCount>());
         var exporter = new ReportExporter();
         Assert.Contains("/demo", exporter.Render(result, ReportFormat.Json));
-        Assert.Contains("<!doctype html>", exporter.Render(result, ReportFormat.Html));
+        var html = exporter.Render(result, ReportFormat.Html);
+        Assert.Contains("<!doctype html>", html);
+        Assert.DoesNotContain("cdn.jsdelivr.net", html);
+        Assert.Contains("echarts.init", html);
         Assert.Contains("Demo/", exporter.Render(result, ReportFormat.DirectoryTree));
     }
 }

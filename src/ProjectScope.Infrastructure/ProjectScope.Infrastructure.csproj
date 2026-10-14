@@ -10,4 +10,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <EmbeddedResource Include="..\..\vendor\echarts.min.js" LogicalName="ProjectScope.Infrastructure.echarts.min.js" />
+  </ItemGroup>
+
 </Project>

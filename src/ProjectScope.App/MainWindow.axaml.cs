@@ -62,6 +62,27 @@ public partial class MainWindow : Window
         _viewModel.RootPath = path;
     }
 
+    private async void LoadConfigurationClicked(object? sender, RoutedEventArgs args)
+    {
+        var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        {
+            Title = "加载扫描配置",
+            AllowMultiple = false,
+            FileTypeFilter = new[] { new FilePickerFileType("ProjectScope 配置") { Patterns = new[] { ".projectscope.json", "*.json" } } }
+        });
+        if (files.Count == 0) return;
+        var path = files[0].TryGetLocalPath();
+        if (path is null) throw new InvalidOperationException("所选配置不是本地文件系统路径。");
+        try
+        {
+            await _viewModel.LoadConfigurationAsync(path);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or ArgumentException or System.Text.Json.JsonException)
+        {
+            _viewModel.ReportOperationError(exception);
+        }
+    }
+
     private void PortfolioClicked(object? sender, RoutedEventArgs args)
     {
         var process = Process.Start(new ProcessStartInfo("https://hatsusumi.github.io/FinalTestamentProofILived/") { UseShellExecute = true });

@@ -31,17 +31,25 @@ public partial class MainViewModel : ObservableObject
 {
     private readonly IProjectScanner _scanner;
     private readonly ReportExporter _exporter;
+    private readonly ProjectConfigurationStore _configurationStore;
     private readonly Action<ThemePreference> _applyTheme;
     private ScanResult? _result;
     private int _themeAnimationVersion;
 
     public MainViewModel(IProjectScanner scanner, ReportExporter exporter, ThemeChoice themeChoice, Action<ThemePreference> applyTheme)
+        : this(scanner, exporter, new ProjectConfigurationStore(), themeChoice, applyTheme)
+    {
+    }
+
+    public MainViewModel(IProjectScanner scanner, ReportExporter exporter, ProjectConfigurationStore configurationStore, ThemeChoice themeChoice, Action<ThemePreference> applyTheme)
     {
         ArgumentNullException.ThrowIfNull(scanner);
         ArgumentNullException.ThrowIfNull(exporter);
+        ArgumentNullException.ThrowIfNull(configurationStore);
         ArgumentNullException.ThrowIfNull(applyTheme);
         _scanner = scanner;
         _exporter = exporter;
+        _configurationStore = configurationStore;
         _applyTheme = applyTheme;
         _themePreference = themeChoice;
     }
@@ -75,6 +83,62 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty] private string _log = "";
     [ObservableProperty] private bool _hasResult;
     public bool CanConfigure => State != ScanState.Scanning;
+    public string ConfigurationPath => Path.Combine(RootPath, ".projectscope.json");
+
+    public async Task SaveConfigurationAsync(string path)
+    {
+        if (!Directory.Exists(RootPath)) throw new DirectoryNotFoundException($"项目根目录不存在：{RootPath}");
+        var configuration = new ProjectConfiguration(
+            RootPath,
+            IncludeAssets,
+            IncludeHidden,
+            ExcludeBlankLinesAndComments,
+            IgnoreDirectories.Where(item => item.IsSelected).Select(item => item.Name).ToArray(),
+            CustomIgnoredPaths.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
+        await _configurationStore.SaveAsync(path, configuration);
+        Status = $"配置已保存：{path}";
+        AppendLog(Status);
+    }
+
+    public async Task LoadConfigurationAsync(string path)
+    {
+        var configuration = await _configurationStore.LoadAsync(path);
+        RootPath = configuration.RootPath;
+        IncludeAssets = configuration.IncludeAssets;
+        IncludeHidden = configuration.IncludeHidden;
+        ExcludeBlankLinesAndComments = configuration.ExcludeBlankLinesAndComments;
+        CustomIgnoredPaths = string.Join(Environment.NewLine, configuration.IgnoredPaths ?? Array.Empty<string>());
+        var selectedDirectories = (configuration.IgnoredDirectoryNames ?? Array.Empty<string>()).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        foreach (var directory in IgnoreDirectories) directory.IsSelected = selectedDirectories.Contains(directory.Name);
+        Status = $"配置已加载：{path}";
+        AppendLog(Status);
+    }
+
+    [RelayCommand]
+    private async Task SaveConfigurationAsync()
+    {
+        try
+        {
+            await SaveConfigurationAsync(ConfigurationPath);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or ArgumentException)
+        {
+            ReportOperationError(exception);
+        }
+    }
+
+    [RelayCommand]
+    private async Task LoadConfigurationAsync()
+    {
+        try
+        {
+            await LoadConfigurationAsync(ConfigurationPath);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or ArgumentException or System.Text.Json.JsonException)
+        {
+            ReportOperationError(exception);
+        }
+    }
 
     [RelayCommand]
     private async Task ToggleThemeMenuAsync()
