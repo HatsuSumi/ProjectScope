@@ -62,6 +62,13 @@ public partial class MainWindow : Window
         _viewModel.RootPath = path;
     }
 
+    private void PortfolioClicked(object? sender, RoutedEventArgs args)
+    {
+        var process = Process.Start(new ProcessStartInfo("https://hatsusumi.github.io/FinalTestamentProofILived/") { UseShellExecute = true });
+        if (process is not null) process.Dispose();
+
+    }
+
     private async void CopyTreeClicked(object? sender, RoutedEventArgs args)
     {
         if (Clipboard is null) throw new InvalidOperationException("桌面平台未提供剪贴板服务。");

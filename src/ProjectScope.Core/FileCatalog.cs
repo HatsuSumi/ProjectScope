@@ -8,9 +8,6 @@ public sealed class FileCatalog
     private readonly FrozenDictionary<string, AssetTypeDefinition> _assetsByExtension;
     private readonly Dictionary<string, AssetTypeDefinition> _assetTypeByExtension;
     private readonly FrozenSet<string> _binaryExtensions;
-    private readonly FrozenSet<string> _ignoredDirectories;
-    private readonly FrozenSet<string> _ignoredFiles;
-    private readonly string[] _ignoredPatterns;
 
     public FileCatalog()
     {
@@ -40,9 +37,6 @@ public sealed class FileCatalog
         _assetsByExtension = assetMap.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
         _assetTypeByExtension = assetMap.ToDictionary(StringComparer.OrdinalIgnoreCase);
         _binaryExtensions = ".png .jpg .jpeg .gif .webp .ico .bmp .tiff .mp3 .wav .flac .mp4 .mkv .mov .avi .pdf .zip .7z .rar .gz .tar .woff .woff2 .ttf .otf .psd .jar .aar .wasm .node .bin .dex .jks .cer .dill".Split(' ').ToFrozenSet(StringComparer.OrdinalIgnoreCase);
-        _ignoredDirectories = ".git .hg .svn .idea .vscode .cursor .dart_tool .flutter-plugins .flutter-plugins-dependencies .fvm .gradle .turbo .parcel-cache .sass-cache .yarn .pnpm-store .nuxt .next .cache .tmp node_modules dist build out target bin obj debug release coverage deriveddata pods xcuserdata __pycache__ .pytest_cache .mypy_cache .ruff_cache .tox .nox .eggs venv .venv env .env".Split(' ').ToFrozenSet(StringComparer.OrdinalIgnoreCase);
-        _ignoredFiles = ".ds_store thumbs.db desktop.ini project_stats.py".Split(' ').ToFrozenSet(StringComparer.OrdinalIgnoreCase);
-        _ignoredPatterns = "project_stats_report*.html project_stats*.log project_stats*.json *_stats_report*.html *.log *.pyc *.pyo *.pyd *.class *.o *.obj *.so *.dll *.dylib *.a *.lib *.exe *.apk *.aab *.ipa *.app *.dsym *.xcarchive *.tmp *.temp *.cache *.stamp *.kotlin_module *.symbols flutter_export_environment.sh generated_plugin_registrant.* *.freezed.dart *.g.dart *.gr.dart *.mocks.dart".Split(' ');
     }
 
     public FileTypeDefinition DetectTextType(string path)
@@ -89,9 +83,6 @@ public sealed class FileCatalog
         return definition.Label;
     }
     public string GetCodeLabel(string type) => type;
-    public IReadOnlySet<string> IgnoredDirectories => _ignoredDirectories;
-    public IReadOnlySet<string> IgnoredFiles => _ignoredFiles;
-    public IReadOnlyList<string> IgnoredPatterns => _ignoredPatterns;
 
     private static IReadOnlyList<FileTypeDefinition> CreateFileTypes()
     {
@@ -127,7 +118,7 @@ public sealed class FileCatalog
             new("Haxe", E(".hx"), "Haxe", false, cl),
             new("WebAssembly", E(".wat"), "WebAssembly", false, CommentSyntax.None),
             new("HTML", E(".html", ".htm", ".xhtml"), "HTML文件", true, CommentSyntax.Html), new("CSS", E(".css"), "CSS文件", true, cl), new("SCSS", E(".scss", ".sass"), "SCSS/Sass文件", true, cl), new("Less", E(".less"), "Less文件", true, cl),
-            new("JSON", E(".json", ".json5", ".jsonc"), "JSON文件", true, CommentSyntax.None), new("YAML", E(".yml", ".yaml"), "YAML文件", true, CommentSyntax.Hash), new("XML", E(".xml", ".xsl", ".xslt", ".svg", ".xaml"), "XML文件", true, CommentSyntax.Html), new("TOML", E(".toml"), "TOML文件", true, CommentSyntax.Hash),
+            new("JSON", E(".json", ".json5", ".jsonc"), "JSON文件", true, CommentSyntax.None), new("YAML", E(".yml", ".yaml"), "YAML文件", true, CommentSyntax.Hash), new("XML", E(".xml", ".xsl", ".xslt", ".svg", ".xaml", ".axaml"), "XML文件", true, CommentSyntax.Html), new("TOML", E(".toml"), "TOML文件", true, CommentSyntax.Hash),
             new("INI", E(".ini", ".cfg", ".conf", ".editorconfig", ".properties", ".prefs", ".eslintrc", ".nycrc", ".babelrc", ".jshintrc", ".jscsrc", ".npmignore", ".gitignore", ".gitattributes", ".dockerignore", ".cursorindexingignore", ".flow", ".lintstagedrc", ".sample", ".example", ".template", ".env"), "INI/配置文件", true, CommentSyntax.Ini),
             new("Markdown", E(".md", ".markdown", ".mdown", ".mkd"), "Markdown文档", false, CommentSyntax.None), new("Text", E(".txt"), "文本文件", true, CommentSyntax.None),
             new("C", E(".c", ".h"), "C文件", true, cl), new("C++", E(".cc", ".cpp", ".cxx", ".hpp", ".hh", ".hxx", ".inl", ".inc"), "C++文件", true, cl), new("C#", E(".cs", ".csx"), "C#文件", true, cl), new("Java", E(".java", ".jav", ".jsp"), "Java文件", true, cl), new("Go", E(".go"), "Go文件", true, cl), new("Rust", E(".rs", ".rlib"), "Rust文件", true, cl), new("Python", E(".py", ".pyw", ".pyi"), "Python脚本", true, CommentSyntax.Python), new("SQL", E(".sql", ".ddl", ".dml"), "SQL脚本", true, CommentSyntax.Sql), new("Shell", E(".sh", ".bash", ".zsh", ".fish", ".ksh"), "Shell脚本", true, CommentSyntax.Hash),

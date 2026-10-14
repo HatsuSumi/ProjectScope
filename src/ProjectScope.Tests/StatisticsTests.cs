@@ -22,7 +22,9 @@ public sealed class StatisticsTests
         Assert.Equal("Shader", catalog.DetectTextType("effect.cginc").Name);
         Assert.Equal("D", catalog.DetectTextType("module.d").Name);
         Assert.Equal("Ruby", catalog.DetectTextType("Gemfile.rake").Name);
-        Assert.Equal("WebAssembly", catalog.DetectTextType("module.wat").Name);
+        Assert.Equal("XML", catalog.DetectTextType("MainWindow.axaml").Name);
+        Assert.True(catalog.DetectTextType("MainWindow.axaml").IsCode);
+        Assert.Equal(CommentSyntax.Html, catalog.DetectTextType("MainWindow.axaml").CommentSyntax);
     }
     [Fact]
     public void CLikeCommentRemovalPreservesCommentMarkersInsideStrings()
@@ -63,7 +65,7 @@ public sealed class StatisticsTests
     }
 
     [Fact]
-    public async Task ScannerCountsEachFileOnceAndUsesConfiguredFilters()
+    public async Task ScannerIncludesDependencyAndGeneratedFiles()
     {
         var root = Path.Combine(Path.GetTempPath(), "ProjectScope.Tests", Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(Path.Combine(root, "src"));
@@ -71,18 +73,22 @@ public sealed class StatisticsTests
         await File.WriteAllTextAsync(Path.Combine(root, "src", "main.cs"), "class Demo { } // 注释\n");
         await File.WriteAllTextAsync(Path.Combine(root, "model3.json"), "{\"ok\": true}");
         await File.WriteAllBytesAsync(Path.Combine(root, "icon.png"), new byte[] { 0x89, 0x50, 0x4e, 0x47 });
-        await File.WriteAllTextAsync(Path.Combine(root, "node_modules", "ignored.js"), "const ignored = true;");
+        await File.WriteAllTextAsync(Path.Combine(root, "node_modules", "dependency.js"), "const dependency = true;");
+        await File.WriteAllTextAsync(Path.Combine(root, "model.g.dart"), "class Model {}");
+        await File.WriteAllTextAsync(Path.Combine(root, "scan.log"), "scan complete");
         try
         {
             var scanner = new ProjectScanner(new FileCatalog(), new CodeAnalyzer());
-            var options = new ScanOptions(true, false, false, true, true);
+            var options = new ScanOptions(true, false);
             var result = await scanner.ScanAsync(new(root, options), new Progress<ScanProgress>(), CancellationToken.None);
-            Assert.Equal(3, result.TotalFiles);
+            Assert.Equal(6, result.TotalFiles);
             Assert.Equal(1, result.TotalAssetFiles);
-            Assert.Equal(2, result.TotalCodeFiles);
-            Assert.Equal(3, result.Files.Count);
+            Assert.Equal(4, result.TotalCodeFiles);
+            Assert.Equal(6, result.Files.Count);
             Assert.Contains("main.cs", result.DirectoryTree);
-            Assert.DoesNotContain("ignored.js", result.DirectoryTree);
+            Assert.Contains("node_modules/dependency.js", result.Files);
+            Assert.Contains("model.g.dart", result.Files);
+            Assert.Contains("scan.log", result.Files);
             Assert.Contains(result.AssetTypes, item => item.Key == "image" && item.Files == 1);
             Assert.Contains(result.Details, item => item.Category == "file" && item.Extension == ".cs");
         }
@@ -93,7 +99,81 @@ public sealed class StatisticsTests
     }
 
     [Fact]
-    public async Task ScannerHonorsFileListAndDetailSwitches()
+    public async Task ScannerAppliesSelectedDirectoriesAndRootRelativePaths()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "ProjectScope.Tests", Guid.NewGuid().ToString("N"));
+        var paths = new[]
+        {
+            "node_modules/dependency.js", "src/node_modules/dependency.js",
+            "A/B/example.xxx", "A/C/example.xxx", "A/D/example.xxx",
+            "A/cache/nested/data.json", "A/cache-extra/data.json", "model.g.dart"
+        };
+        try
+        {
+            foreach (var path in paths)
+            {
+                var fullPath = Path.Combine(root, path);
+                Directory.CreateDirectory(Path.GetDirectoryName(fullPath)!);
+                await File.WriteAllTextAsync(fullPath, "{}");
+            }
+            var scanner = new ProjectScanner(new FileCatalog(), new CodeAnalyzer());
+            var options = new ScanOptions(true, true)
+            {
+                IgnoredDirectoryNames = new[] { "node_modules" },
+                IgnoredPaths = new[] { "/A/B/example.xxx", @"\A\C\example.xxx", "/A/cache/" }
+            };
+            var result = await scanner.ScanAsync(new(root, options), new Progress<ScanProgress>(), CancellationToken.None);
+            Assert.Equal(new[] { "A/D/example.xxx", "A/cache-extra/data.json", "model.g.dart" }, result.Files);
+            Assert.DoesNotContain("node_modules", result.DirectoryTree);
+            Assert.Equal(3, result.TotalFiles);
+
+            var unfiltered = await scanner.ScanAsync(new(root, new ScanOptions(true, true)), new Progress<ScanProgress>(), CancellationToken.None);
+            Assert.Equal(paths.Length, unfiltered.TotalFiles);
+
+            var regexOptions = options with
+            {
+                IgnoredPaths = new[] { @"regex:^/A/(B|C)/example\.xxx$", "regex:^/A/cache$", @"regex:\.g\.dart$" }
+            };
+            var regexResult = await scanner.ScanAsync(new(root, regexOptions), new Progress<ScanProgress>(), CancellationToken.None);
+            Assert.Equal(new[] { "A/D/example.xxx", "A/cache-extra/data.json" }, regexResult.Files);
+
+            foreach (var invalidRule in new[] { "regex:[", "regex:" })
+            {
+                var invalidOptions = options with { IgnoredPaths = new[] { invalidRule } };
+                var exception = await Assert.ThrowsAsync<ArgumentException>(() => scanner.ScanAsync(new(root, invalidOptions), new Progress<ScanProgress>(), CancellationToken.None));
+                Assert.Contains("正则表达式", exception.Message);
+            }
+        }
+        finally
+        {
+            if (Directory.Exists(root)) Directory.Delete(root, true);
+        }
+    }
+
+    [Fact]
+    public async Task ScannerCanIncludeBlankLinesAndCommentsInCodeStatistics()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "ProjectScope.Tests", Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(root);
+        try
+        {
+            await File.WriteAllTextAsync(Path.Combine(root, "main.cs"), "class Demo {} // code\n// comment\n\n");
+            var scanner = new ProjectScanner(new FileCatalog(), new CodeAnalyzer());
+            var filtered = await scanner.ScanAsync(new(root, new ScanOptions(false, false)), new Progress<ScanProgress>(), CancellationToken.None);
+            var raw = await scanner.ScanAsync(new(root, new ScanOptions(false, false) { ExcludeBlankLinesAndComments = false }), new Progress<ScanProgress>(), CancellationToken.None);
+
+            Assert.Equal(1, filtered.TotalCodeLines);
+            Assert.Equal(3, raw.TotalCodeLines);
+            Assert.True(raw.TotalCodeCharacters > filtered.TotalCodeCharacters);
+        }
+        finally
+        {
+            Directory.Delete(root, true);
+        }
+    }
+
+    [Fact]
+    public async Task ScannerAlwaysIncludesFileListAndDetails()
     {
         var root = Path.Combine(Path.GetTempPath(), "ProjectScope.Tests", Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(root);
@@ -101,9 +181,9 @@ public sealed class StatisticsTests
         try
         {
             var scanner = new ProjectScanner(new FileCatalog(), new CodeAnalyzer());
-            var result = await scanner.ScanAsync(new(root, new ScanOptions(false, false, false, false, false)), new Progress<ScanProgress>(), CancellationToken.None);
-            Assert.Empty(result.Files);
-            Assert.Empty(result.Details);
+            var result = await scanner.ScanAsync(new(root, new ScanOptions(false, false)), new Progress<ScanProgress>(), CancellationToken.None);
+            Assert.Equal(new[] { "main.js" }, result.Files);
+            Assert.Contains(result.Details, item => item.Type == "JavaScript" && item.Extension == ".js" && item.Count == 1);
             Assert.Contains("main.js", result.DirectoryTree);
         }
         finally
@@ -121,13 +201,57 @@ public sealed class StatisticsTests
         try
         {
             var scanner = new ProjectScanner(new FileCatalog(), new CodeAnalyzer());
-            var exception = await Assert.ThrowsAsync<IOException>(() => scanner.ScanAsync(new(root, new ScanOptions(false, false, false, false, false)), new Progress<ScanProgress>(), CancellationToken.None));
+            var exception = await Assert.ThrowsAsync<IOException>(() => scanner.ScanAsync(new(root, new ScanOptions(false, false)), new Progress<ScanProgress>(), CancellationToken.None));
             Assert.Contains("invalid.cs", exception.Message);
         }
         finally
         {
             Directory.Delete(root, true);
         }
+    }
+
+    [Theory]
+    [InlineData(CommentSyntax.None)]
+    [InlineData(CommentSyntax.CLike)]
+    [InlineData(CommentSyntax.Batch)]
+    public void AnalyzerHonorsCancellation(CommentSyntax syntax)
+    {
+        using var cancellation = new CancellationTokenSource();
+        cancellation.Cancel();
+        Assert.Throws<OperationCanceledException>(() => new CodeAnalyzer().Analyze("class Demo {}", syntax, cancellation.Token));
+    }
+
+    [Fact]
+    public async Task ScannerStopsWithoutReturningPartialResultsWhenCancelled()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "ProjectScope.Tests", Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(root);
+        using var cancellation = new CancellationTokenSource();
+        try
+        {
+            await File.WriteAllTextAsync(Path.Combine(root, "large.js"), "/*" + new string('x', 8_000_000) + "*/");
+            var scanner = new ProjectScanner(new FileCatalog(), new CodeAnalyzer());
+            var task = scanner.ScanAsync(new(root, new ScanOptions(false, false)), new Progress<ScanProgress>(), cancellation.Token);
+            cancellation.Cancel();
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => task.WaitAsync(TimeSpan.FromSeconds(5)));
+            Assert.True(task.IsCanceled);
+        }
+        finally
+        {
+            Directory.Delete(root, true);
+        }
+    }
+
+    [Fact]
+    public void ReportTotalsDoNotDoubleCountAssetFiles()
+    {
+        var result = new ScanResult("/demo", 10, Array.Empty<TypeCount>(), Array.Empty<CodeTypeCount>(), Array.Empty<AssetTypeCount>(), 0, 0, 0, 3, 128, Array.Empty<string>(), "Demo/\n", Array.Empty<DetailCount>(), Array.Empty<DetailCount>());
+        var exporter = new ReportExporter();
+        var json = exporter.Render(result, ReportFormat.Json);
+        var html = exporter.Render(result, ReportFormat.Html);
+
+        Assert.Contains("\"all_files\": 10", json);
+        Assert.Contains("\"total_files\":10", html);
     }
 
     [Fact]

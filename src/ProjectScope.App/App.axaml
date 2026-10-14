@@ -34,15 +34,93 @@
                 </Transitions>
             </Setter>
         </Style>
-        <Style Selector="Button.folder-picker /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Transitions">
-                <Transitions>
-                    <BrushTransition Property="Background" Duration="0:0:0.18" />
-                    <BrushTransition Property="BorderBrush" Duration="0:0:0.18" />
-                </Transitions>
+        <Style Selector="Button.folder-picker">
+            <Setter Property="Background" Value="{DynamicResource CardBackgroundBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource CardBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <ContentPresenter Name="FolderPickerPresenter"
+                                      Content="{TemplateBinding Content}"
+                                      ContentTemplate="{TemplateBinding ContentTemplate}"
+                                      Background="{TemplateBinding Background}"
+                                      BorderBrush="{TemplateBinding BorderBrush}"
+                                      BorderThickness="{TemplateBinding BorderThickness}"
+                                      CornerRadius="{TemplateBinding CornerRadius}"
+                                      Padding="{TemplateBinding Padding}"
+                                      HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                      VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}">
+                        <ContentPresenter.Transitions>
+                            <Transitions>
+                                <BrushTransition Property="Background" Duration="0:0:0.18" />
+                                <BrushTransition Property="BorderBrush" Duration="0:0:0.18" />
+                            </Transitions>
+                        </ContentPresenter.Transitions>
+                    </ContentPresenter>
+                </ControlTemplate>
             </Setter>
         </Style>
+        <Style Selector="Button.folder-picker:pointerover">
+            <Setter Property="Background" Value="{DynamicResource ReportBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+        </Style>
+        <Style Selector="Button.folder-picker:pressed">
+            <Setter Property="Background" Value="{DynamicResource CardBorderBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+        </Style>
+        <Style Selector="Button.folder-picker:disabled">
+            <Setter Property="Opacity" Value="0.5" />
+        </Style>
+        <Style Selector="Button.export-action">
+            <Setter Property="Transitions">
+                <Transitions>
+                    <DoubleTransition Property="Opacity" Duration="0:0:0.18" />
+                </Transitions>
+            </Setter>
+            <Setter Property="Background" Value="{DynamicResource CardBackgroundBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource CardBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <ContentPresenter Name="ExportActionPresenter"
+                                      Content="{TemplateBinding Content}"
+                                      ContentTemplate="{TemplateBinding ContentTemplate}"
+                                      Background="{TemplateBinding Background}"
+                                      BorderBrush="{TemplateBinding BorderBrush}"
+                                      BorderThickness="{TemplateBinding BorderThickness}"
+                                      CornerRadius="{TemplateBinding CornerRadius}"
+                                      Padding="{TemplateBinding Padding}"
+                                      HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                      VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}">
+                        <ContentPresenter.Transitions>
+                            <Transitions>
+                                <BrushTransition Property="Background" Duration="0:0:0.18" />
+                                <BrushTransition Property="BorderBrush" Duration="0:0:0.18" />
+                            </Transitions>
+                        </ContentPresenter.Transitions>
+                    </ContentPresenter>
+                </ControlTemplate>
+            </Setter>
+        </Style>
+        <Style Selector="Button.export-action:pointerover">
+            <Setter Property="Background" Value="{DynamicResource ReportBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+        </Style>
+        <Style Selector="Button.export-action:pressed">
+            <Setter Property="Background" Value="{DynamicResource CardBorderBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+        </Style>
+        <Style Selector="Button.export-action:disabled">
+            <Setter Property="Opacity" Value="0.5" />
+        </Style>
         <Style Selector="TextBox.report">
+            <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Visible" />
+            <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Auto" />
+            <Setter Property="ScrollViewer.AllowAutoHide" Value="False" />
             <Setter Property="FontFamily" Value="Cascadia Mono,Consolas,monospace" />
             <Setter Property="Background" Value="{DynamicResource ReportBackgroundBrush}" />
             <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />

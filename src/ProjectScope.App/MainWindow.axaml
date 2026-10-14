@@ -56,7 +56,7 @@
       <Setter Property="Padding" Value="12,8" />
     </Style>
   </Window.Styles>
-  <Grid RowDefinitions="Auto,Auto,*,Auto" Margin="28" RowSpacing="18">
+  <Grid RowDefinitions="Auto,2*,3*,Auto" Margin="28" RowSpacing="18">
     <Grid ColumnDefinitions="*,Auto" ColumnSpacing="20">
       <StackPanel Spacing="4">
         <TextBlock Classes="title" Text="ProjectScope" FontSize="30" FontWeight="Bold" />
@@ -89,41 +89,90 @@
       </Grid>
     </Grid>
     <Border Grid.Row="1" Classes="card">
+      <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
       <StackPanel Spacing="14">
         <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12" IsEnabled="{Binding CanConfigure}">
           <TextBox Text="{Binding RootPath}" Watermark="项目根目录" />
           <Button Grid.Column="1" Classes="folder-picker" Content="选择文件夹" Click="BrowseClicked" />
         </Grid>
         <WrapPanel IsEnabled="{Binding CanConfigure}">
-          <CheckBox Content="统计资源" IsChecked="{Binding IncludeAssets}" Margin="0,0,20,0" />
+          <CheckBox Content="统计资源（统计非代码文件（图片/音频/模型/二进制等））" IsChecked="{Binding IncludeAssets}" Margin="0,0,20,0" />
           <CheckBox Content="包含隐藏文件" IsChecked="{Binding IncludeHidden}" Margin="0,0,20,0" />
-          <CheckBox Content="取消默认忽略" IsChecked="{Binding DisableDefaultIgnores}" Margin="0,0,20,0" />
-          <CheckBox Content="扩展名细分" IsChecked="{Binding IncludeDetails}" Margin="0,0,20,0" />
-          <CheckBox Content="文件清单" IsChecked="{Binding IncludeFileList}" />
+          <CheckBox Content="排除空行和注释" IsChecked="{Binding ExcludeBlankLinesAndComments}" Margin="0,0,20,0" />
         </WrapPanel>
+        <Expander Header="忽略目录" IsExpanded="True" IsEnabled="{Binding CanConfigure}" HorizontalAlignment="Stretch">
+          <StackPanel Spacing="8" Margin="0,8,0,0">
+            <ScrollViewer MaxHeight="90" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+              <ItemsControl ItemsSource="{Binding IgnoreDirectories}">
+                <ItemsControl.ItemsPanel>
+                  <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="local:IgnoreDirectoryChoice">
+                    <CheckBox Content="{Binding Name}" IsChecked="{Binding IsSelected, Mode=TwoWay}" Margin="0,0,18,4" />
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </ScrollViewer>
+            <TextBlock Classes="secondary" Text="勾选目录名会忽略各层级的同名目录；自定义路径每行一条。正则以 regex: 开头，匹配带 / 前缀的项目相对路径。" TextWrapping="Wrap" />
+            <TextBox Text="{Binding CustomIgnoredPaths, Mode=TwoWay}" AcceptsReturn="True" Height="72" TextWrapping="NoWrap"
+                     Watermark="例如：/A/cache/ 或 regex:^/A/(B|C)/example\.xxx$（每行一条）" />
+          </StackPanel>
+        </Expander>
         <Grid ColumnDefinitions="Auto,Auto,*" ColumnSpacing="12">
           <Button Classes="primary" Content="开始扫描" Command="{Binding ScanCommand}" />
           <Button Grid.Column="1" Content="取消扫描" Command="{Binding ScanCancelCommand}" />
           <TextBlock Grid.Column="2" Classes="secondary" Text="{Binding Summary}" VerticalAlignment="Center" HorizontalAlignment="Right" />
         </Grid>
       </StackPanel>
+      </ScrollViewer>
     </Border>
     <Border Grid.Row="2" Classes="card">
       <Grid RowDefinitions="Auto,*" RowSpacing="14">
         <WrapPanel IsEnabled="{Binding HasResult}">
-          <Button Content="导出 Markdown" Tag="Markdown" Click="ExportClicked" Margin="0,0,8,0" />
-          <Button Content="导出 JSON" Tag="Json" Click="ExportClicked" Margin="0,0,8,0" />
-          <Button Content="导出日志" Tag="Text" Click="ExportClicked" Margin="0,0,8,0" />
-          <Button Content="导出 HTML" Tag="Html" Click="ExportClicked" Margin="0,0,8,0" />
-          <Button Content="保存目录树" Tag="DirectoryTree" Click="ExportClicked" Margin="0,0,8,0" />
-          <Button Content="复制目录树" Click="CopyTreeClicked" />
+          <Button Classes="export-action" Content="导出 Markdown" Tag="Markdown" Click="ExportClicked" Margin="0,0,8,0" />
+          <Button Classes="export-action" Content="导出 JSON" Tag="Json" Click="ExportClicked" Margin="0,0,8,0" />
+          <Button Classes="export-action" Content="导出 TXT" Tag="Text" Click="ExportClicked" Margin="0,0,8,0" />
+          <Button Classes="export-action" Content="导出 HTML" Tag="Html" Click="ExportClicked" Margin="0,0,8,0" />
+          <Button Classes="export-action" Content="保存目录树" Tag="DirectoryTree" Click="ExportClicked" Margin="0,0,8,0" />
+          <Button Classes="export-action" Content="复制目录树" Click="CopyTreeClicked" />
         </WrapPanel>
-        <TabControl Grid.Row="1">
+        <TabControl Grid.Row="1" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch">
           <TabItem Header="统计报告"><TextBox Classes="report" Text="{Binding Report}" IsReadOnly="True" AcceptsReturn="True" TextWrapping="NoWrap" /></TabItem>
           <TabItem Header="目录树"><TextBox Classes="report" Text="{Binding DirectoryTree}" IsReadOnly="True" AcceptsReturn="True" TextWrapping="NoWrap" /></TabItem>
           <TabItem Header="文件清单"><TextBox Classes="report" Text="{Binding FileList}" IsReadOnly="True" AcceptsReturn="True" TextWrapping="NoWrap" /></TabItem>
           <TabItem Header="细分统计"><TextBox Classes="report" Text="{Binding Details}" IsReadOnly="True" AcceptsReturn="True" TextWrapping="NoWrap" /></TabItem>
           <TabItem Header="扫描日志"><TextBox Classes="report" Text="{Binding Log}" IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap" /></TabItem>
+          <TabItem Header="关于">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+              <StackPanel Spacing="18" Margin="20" MaxWidth="900" HorizontalAlignment="Left">
+                <StackPanel Spacing="8">
+                  <TextBlock Classes="title" Text="关于 ProjectScope" FontSize="24" FontWeight="Bold" />
+                  <TextBlock Text="这是一个由一人在孤独和抑郁症下开发完成的开源免费项目。" TextWrapping="Wrap" />
+                  <TextBlock Classes="secondary" Text="GitHub 仓库：待补充" />
+                  <Button HorizontalAlignment="Left" Content="个人网站 · 作品集" Click="PortfolioClicked" />
+                  <TextBlock Classes="secondary" Text="https://hatsusumi.github.io/FinalTestamentProofILived/" TextWrapping="Wrap" />
+                </StackPanel>
+                <StackPanel Spacing="6">
+                  <TextBlock Classes="title" Text="技术栈" FontSize="18" FontWeight="SemiBold" />
+                  <TextBlock Text="C# · .NET 8 · Avalonia UI · MVVM · CommunityToolkit.Mvvm" TextWrapping="Wrap" />
+                </StackPanel>
+                <StackPanel Spacing="6">
+                  <TextBlock Classes="title" Text="项目结构" FontSize="18" FontWeight="SemiBold" />
+                  <TextBlock Classes="report" Text="ProjectScope/&#10;├── README.md&#10;├── ProjectScope.sln&#10;├── Directory.Build.props&#10;├── Directory.Packages.props&#10;└── src/&#10;    ├── ProjectScope.App/             Avalonia 桌面应用与 MVVM 界面&#10;    ├── ProjectScope.Core/            统计模型、类型识别、注释处理与目录树&#10;    ├── ProjectScope.Infrastructure/  文件扫描与报告导出&#10;    └── ProjectScope.Tests/           核心统计和扫描测试" TextWrapping="NoWrap" />
+                </StackPanel>
+                <StackPanel Spacing="6">
+                  <TextBlock Classes="title" Text="项目规模" FontSize="18" FontWeight="SemiBold" />
+                  <TextBlock Text="文件统计" FontWeight="SemiBold" />
+                  <TextBlock Text="总文件数：25 个&#10;  C#文件：14 个&#10;  其他文件：10 个&#10;  Markdown文档：1 个" />
+                  <TextBlock Text="代码规模" FontWeight="SemiBold" Margin="0,6,0,0" />
+                  <TextBlock Text="代码总行数：876 行（不含空行、注释）&#10;  C#：876 行（100.0%）&#10;&#10;字符总数：50,862 字符（不含注释）&#10;  C#：50,862 字符（100.0%）" TextWrapping="Wrap" />
+                  <TextBlock Text="资源文件" FontWeight="SemiBold" Margin="0,6,0,0" />
+                  <TextBlock Text="资源文件总数：0 个&#10;资源文件总大小：0 B" />
+                </StackPanel>
+              </StackPanel>
+            </ScrollViewer>
+          </TabItem>
         </TabControl>
       </Grid>
     </Border>

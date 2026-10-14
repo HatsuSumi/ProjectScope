@@ -20,6 +20,13 @@ public static class ThemePreferenceValues
     public static IReadOnlyList<ThemeChoice> All { get; } = new[] { System, Light, Dark, Cyberpunk };
 }
 
+public partial class IgnoreDirectoryChoice : ObservableObject
+{
+    public IgnoreDirectoryChoice(string name) => Name = name;
+    public string Name { get; }
+    [ObservableProperty] private bool _isSelected = true;
+}
+
 public partial class MainViewModel : ObservableObject
 {
     private readonly IProjectScanner _scanner;
@@ -39,12 +46,18 @@ public partial class MainViewModel : ObservableObject
         _themePreference = themeChoice;
     }
 
+    public IReadOnlyList<IgnoreDirectoryChoice> IgnoreDirectories { get; } = new[]
+    {
+        "node_modules", "bin", "obj", "build", "dist", "out", "target", "coverage",
+        ".dart_tool", ".fvm", ".gradle", ".next", ".nuxt", ".cache",
+        "__pycache__", ".pytest_cache", ".venv", "venv", "Pods", "DerivedData"
+    }.Select(name => new IgnoreDirectoryChoice(name)).ToArray();
+
+    [ObservableProperty] private string _customIgnoredPaths = "";
     [ObservableProperty] private string _rootPath = Environment.CurrentDirectory;
     [ObservableProperty] private bool _includeAssets = true;
     [ObservableProperty] private bool _includeHidden;
-    [ObservableProperty] private bool _disableDefaultIgnores;
-    [ObservableProperty] private bool _includeDetails = true;
-    [ObservableProperty] private bool _includeFileList = true;
+    [ObservableProperty] private bool _excludeBlankLinesAndComments = true;
     [ObservableProperty] private ThemeChoice _themePreference;
     [ObservableProperty] private bool _themeMenuOpen;
     [ObservableProperty] private double _themeMenuArrowAngle;
@@ -150,7 +163,13 @@ public partial class MainViewModel : ObservableObject
         State = ScanState.Scanning;
         try
         {
-            var request = new ScanRequest(RootPath, new(IncludeAssets, IncludeHidden, DisableDefaultIgnores, IncludeDetails, IncludeFileList));
+            var options = new ScanOptions(IncludeAssets, IncludeHidden)
+            {
+                IgnoredDirectoryNames = IgnoreDirectories.Where(item => item.IsSelected).Select(item => item.Name).ToArray(),
+                IgnoredPaths = CustomIgnoredPaths.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries),
+                ExcludeBlankLinesAndComments = ExcludeBlankLinesAndComments
+            };
+            var request = new ScanRequest(RootPath, options);
             Status = "正在扫描…";
             var progress = new Progress<ScanProgress>(item =>
             {
