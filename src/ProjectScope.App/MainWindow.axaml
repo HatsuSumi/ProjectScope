@@ -151,24 +151,30 @@
                 <StackPanel Spacing="8">
                   <TextBlock Classes="title" Text="关于 ProjectScope" FontSize="24" FontWeight="Bold" />
                   <TextBlock Text="这是一个由一人在孤独和抑郁症下开发完成的开源免费项目。" TextWrapping="Wrap" />
-                  <TextBlock Classes="secondary" Text="GitHub 仓库：待补充" />
-                  <Button HorizontalAlignment="Left" Content="个人网站 · 作品集" Click="PortfolioClicked" />
-                  <TextBlock Classes="secondary" Text="https://hatsusumi.github.io/FinalTestamentProofILived/" TextWrapping="Wrap" />
+                  <TextBlock Text="跨平台桌面项目统计工具，用于分析项目文件、代码规模、资源占用和目录结构，并生成清晰易读的统计报告。" TextWrapping="Wrap" />
+                  <Button HorizontalAlignment="Left" Content="打开 GitHub 仓库" Click="GitHubClicked" />
+                  <TextBlock Classes="secondary" Text="项目仓库：github.com/HatsuSumi/ProjectScope" TextWrapping="Wrap" />
+                  <Button HorizontalAlignment="Left" Content="打开个人网站" Click="PortfolioClicked" />
+                  <TextBlock Classes="secondary" Text="了解作者的作品与开发记录。" TextWrapping="Wrap" />
+                </StackPanel>
+                <StackPanel Spacing="6">
+                  <TextBlock Classes="title" Text="核心能力" FontSize="18" FontWeight="SemiBold" />
+                  <TextBlock Text="递归扫描与进度显示 · 代码和资源分类统计 · 自定义忽略规则 · 扫描配置保存与加载 · Markdown、JSON、TXT 和 HTML 报告导出 · 完全离线的 HTML 图表报告" TextWrapping="Wrap" />
                 </StackPanel>
                 <StackPanel Spacing="6">
                   <TextBlock Classes="title" Text="技术栈" FontSize="18" FontWeight="SemiBold" />
-                  <TextBlock Text="C# · .NET 8 · Avalonia UI · MVVM · CommunityToolkit.Mvvm" TextWrapping="Wrap" />
+                  <TextBlock Text="C# · .NET 8 · Avalonia UI · MVVM · CommunityToolkit.Mvvm · System.Text.Json · ECharts 5.4.3" TextWrapping="Wrap" />
                 </StackPanel>
                 <StackPanel Spacing="6">
                   <TextBlock Classes="title" Text="项目结构" FontSize="18" FontWeight="SemiBold" />
-                  <TextBlock Classes="report" Text="ProjectScope/&#10;├── README.md&#10;├── ProjectScope.sln&#10;├── Directory.Build.props&#10;├── Directory.Packages.props&#10;└── src/&#10;    ├── ProjectScope.App/             Avalonia 桌面应用与 MVVM 界面&#10;    ├── ProjectScope.Core/            统计模型、类型识别、注释处理与目录树&#10;    ├── ProjectScope.Infrastructure/  文件扫描与报告导出&#10;    └── ProjectScope.Tests/           核心统计和扫描测试" TextWrapping="NoWrap" />
+                  <TextBlock Classes="report" Text="ProjectScope/&#10;├── README.md&#10;├── ProjectScope.sln&#10;├── Directory.Build.props&#10;├── Directory.Packages.props&#10;├── vendor/&#10;│   └── echarts.min.js                 离线 HTML 报告使用的图表运行时&#10;└── src/&#10;    ├── ProjectScope.App/             Avalonia 桌面应用与 MVVM 界面&#10;    ├── ProjectScope.Core/            统计模型、类型识别、注释处理与目录树&#10;    ├── ProjectScope.Infrastructure/  文件扫描、配置存储与报告导出&#10;    └── ProjectScope.Tests/           核心统计、扫描和配置测试" TextWrapping="NoWrap" />
                 </StackPanel>
                 <StackPanel Spacing="6">
                   <TextBlock Classes="title" Text="项目规模" FontSize="18" FontWeight="SemiBold" />
                   <TextBlock Text="文件统计" FontWeight="SemiBold" />
-                  <TextBlock Text="总文件数：25 个&#10;  C#文件：14 个&#10;  其他文件：10 个&#10;  Markdown文档：1 个" />
+                  <TextBlock Text="总文件数：27 个&#10;  C#文件：15 个&#10;  XML文件：2 个&#10;  JavaScript文件：1 个&#10;  Markdown文档：1 个&#10;  其他文件：8 个" />
                   <TextBlock Text="代码规模" FontWeight="SemiBold" Margin="0,6,0,0" />
-                  <TextBlock Text="代码总行数：876 行（不含空行、注释）&#10;  C#：876 行（100.0%）&#10;&#10;字符总数：50,862 字符（不含注释）&#10;  C#：50,862 字符（100.0%）" TextWrapping="Wrap" />
+                  <TextBlock Text="代码总行数：1,860 行（不含空行、注释）&#10;  C#：1,505 行（80.9%）&#10;  XML：343 行（18.4%）&#10;  JavaScript：12 行（0.7%）&#10;&#10;字符总数：1,131,063 字符（不含注释）&#10;  C#：86,271 字符（7.6%）&#10;  XML：22,417 字符（2.0%）&#10;  JavaScript：1,022,375 字符（90.4%）" TextWrapping="Wrap" />
                   <TextBlock Text="资源文件" FontWeight="SemiBold" Margin="0,6,0,0" />
                   <TextBlock Text="资源文件总数：0 个&#10;资源文件总大小：0 B" />
                 </StackPanel>

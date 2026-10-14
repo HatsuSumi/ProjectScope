@@ -83,6 +83,12 @@ public partial class MainWindow : Window
         }
     }
 
+    private void GitHubClicked(object? sender, RoutedEventArgs args)
+    {
+        var process = Process.Start(new ProcessStartInfo("https://github.com/HatsuSumi/ProjectScope") { UseShellExecute = true });
+        if (process is not null) process.Dispose();
+    }
+
     private void PortfolioClicked(object? sender, RoutedEventArgs args)
     {
         var process = Process.Start(new ProcessStartInfo("https://hatsusumi.github.io/FinalTestamentProofILived/") { UseShellExecute = true });
