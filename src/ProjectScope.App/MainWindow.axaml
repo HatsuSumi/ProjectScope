@@ -49,6 +49,74 @@
       <Setter Property="Foreground" Value="White" />
       <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
     </Style>
+    <Style Selector="Button.config-action">
+      <Setter Property="Background" Value="{DynamicResource CardBackgroundBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource CardBorderBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="8" />
+      <Setter Property="Padding" Value="10,7" />
+      <Setter Property="Template">
+        <ControlTemplate>
+          <ContentPresenter Name="ActionPresenter"
+                            Content="{TemplateBinding Content}"
+                            ContentTemplate="{TemplateBinding ContentTemplate}"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="{TemplateBinding CornerRadius}"
+                            Padding="{TemplateBinding Padding}"
+                            HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                            VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}">
+            <ContentPresenter.Transitions>
+              <Transitions>
+                <BrushTransition Property="Background" Duration="0:0:0.18" />
+                <BrushTransition Property="BorderBrush" Duration="0:0:0.18" />
+              </Transitions>
+            </ContentPresenter.Transitions>
+          </ContentPresenter>
+        </ControlTemplate>
+      </Setter>
+      <Setter Property="Transitions" Value="{x:Null}" />
+    </Style>
+    <Style Selector="Button.config-action:pointerover">
+      <Setter Property="Background" Value="{DynamicResource ReportBackgroundBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+    </Style>
+    <Style Selector="Button.external-link">
+      <Setter Property="Background" Value="{DynamicResource CardBackgroundBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource CardBorderBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="8" />
+      <Setter Property="Padding" Value="10,7" />
+      <Setter Property="Template">
+        <ControlTemplate>
+          <ContentPresenter Name="ActionPresenter"
+                            Content="{TemplateBinding Content}"
+                            ContentTemplate="{TemplateBinding ContentTemplate}"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="{TemplateBinding CornerRadius}"
+                            Padding="{TemplateBinding Padding}"
+                            HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                            VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}">
+            <ContentPresenter.Transitions>
+              <Transitions>
+                <BrushTransition Property="Background" Duration="0:0:0.18" />
+                <BrushTransition Property="BorderBrush" Duration="0:0:0.18" />
+              </Transitions>
+            </ContentPresenter.Transitions>
+          </ContentPresenter>
+        </ControlTemplate>
+      </Setter>
+      <Setter Property="Transitions" Value="{x:Null}" />
+    </Style>
+    <Style Selector="Button.external-link:pointerover">
+      <Setter Property="Background" Value="{DynamicResource ReportBackgroundBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+    </Style>
     <Style Selector="Button.theme-option">
       <Setter Property="HorizontalContentAlignment" Value="Left" />
       <Setter Property="Background" Value="Transparent" />
@@ -94,8 +162,8 @@
         <Grid ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="10" IsEnabled="{Binding CanConfigure}">
           <TextBox Text="{Binding RootPath}" Watermark="项目根目录" />
           <Button Grid.Column="1" Classes="folder-picker" Content="选择文件夹" Click="BrowseClicked" />
-          <Button Grid.Column="2" Content="保存配置" Command="{Binding SaveConfigurationCommand}" />
-          <Button Grid.Column="3" Content="加载配置" Click="LoadConfigurationClicked" />
+          <Button Grid.Column="2" Classes="config-action" Content="保存配置" Command="{Binding SaveConfigurationCommand}" />
+          <Button Grid.Column="3" Classes="config-action" Content="加载配置" Click="LoadConfigurationClicked" />
         </Grid>
         <WrapPanel IsEnabled="{Binding CanConfigure}">
           <CheckBox Content="统计资源（统计非代码文件（图片/音频/模型/二进制等））" IsChecked="{Binding IncludeAssets}" Margin="0,0,20,0" />
@@ -117,7 +185,7 @@
               </ItemsControl>
             </ScrollViewer>
             <TextBlock Classes="secondary" Text="勾选目录名会忽略各层级的同名目录；自定义路径每行一条。正则以 regex: 开头，匹配带 / 前缀的项目相对路径。" TextWrapping="Wrap" />
-            <TextBox Text="{Binding CustomIgnoredPaths, Mode=TwoWay}" AcceptsReturn="True" Height="72" TextWrapping="NoWrap"
+            <TextBox Classes="custom-ignore" Text="{Binding CustomIgnoredPaths, Mode=TwoWay}" AcceptsReturn="True" Height="72" TextWrapping="NoWrap"
                      Watermark="例如：/A/cache/ 或 regex:^/A/(B|C)/example\.xxx$（每行一条）" />
           </StackPanel>
         </Expander>
@@ -152,9 +220,9 @@
                   <TextBlock Classes="title" Text="关于 ProjectScope" FontSize="24" FontWeight="Bold" />
                   <TextBlock Text="这是一个由一人在孤独和抑郁症下开发完成的开源免费项目。" TextWrapping="Wrap" />
                   <TextBlock Text="跨平台桌面项目统计工具，用于分析项目文件、代码规模、资源占用和目录结构，并生成清晰易读的统计报告。" TextWrapping="Wrap" />
-                  <Button HorizontalAlignment="Left" Content="打开 GitHub 仓库" Click="GitHubClicked" />
+                  <Button Classes="external-link" HorizontalAlignment="Left" Content="打开 GitHub 仓库" Click="GitHubClicked" />
                   <TextBlock Classes="secondary" Text="项目仓库：github.com/HatsuSumi/ProjectScope" TextWrapping="Wrap" />
-                  <Button HorizontalAlignment="Left" Content="打开个人网站" Click="PortfolioClicked" />
+                  <Button Classes="external-link" HorizontalAlignment="Left" Content="打开个人网站" Click="PortfolioClicked" />
                   <TextBlock Classes="secondary" Text="了解作者的作品与开发记录。" TextWrapping="Wrap" />
                 </StackPanel>
                 <StackPanel Spacing="6">

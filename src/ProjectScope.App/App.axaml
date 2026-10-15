@@ -117,6 +117,15 @@
         <Style Selector="Button.export-action:disabled">
             <Setter Property="Opacity" Value="0.5" />
         </Style>
+        <Style Selector="TextBox.custom-ignore">
+            <Setter Property="Background" Value="{DynamicResource CardBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource CardBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+        </Style>
+        <Style Selector="TextBox.custom-ignore:pointerover">
+            <Setter Property="Background" Value="{DynamicResource CardBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+        </Style>
         <Style Selector="TextBox.report">
             <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Visible" />
             <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Auto" />
@@ -124,6 +133,19 @@
             <Setter Property="FontFamily" Value="Cascadia Mono,Consolas,monospace" />
             <Setter Property="Background" Value="{DynamicResource ReportBackgroundBrush}" />
             <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
+        </Style>
+        <Style Selector="TextBox.report:pointerover">
+            <Setter Property="Background" Value="{DynamicResource ReportBackgroundBrush}" />
+        </Style>
+        <Style Selector="TextBox.custom-ignore /template/ Border#PART_Border,
+                        TextBox.custom-ignore /template/ Border#PART_InnerBorder,
+                        TextBox.custom-ignore /template/ Border#PART_FocusAdorner">
+            <Setter Property="Background" Value="{DynamicResource CardBackgroundBrush}" />
+        </Style>
+        <Style Selector="TextBox.report /template/ Border#PART_Border,
+                        TextBox.report /template/ Border#PART_InnerBorder,
+                        TextBox.report /template/ Border#PART_FocusAdorner">
+            <Setter Property="Background" Value="{DynamicResource ReportBackgroundBrush}" />
         </Style>
     </Application.Styles>
     <Application.Resources>
