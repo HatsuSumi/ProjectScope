@@ -7,6 +7,15 @@ namespace ProjectScope.Infrastructure;
 
 public sealed class ProjectScanner : IProjectScanner
 {
+    private static readonly Encoding StrictUtf8 = new UTF8Encoding(false, true);
+    private static readonly Encoding StrictUtf16LittleEndian = new UnicodeEncoding(false, false, true);
+    private static readonly Encoding StrictUtf16BigEndian = new UnicodeEncoding(true, false, true);
+
+    static ProjectScanner()
+    {
+        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+    }
+
     private readonly FileCatalog _catalog;
     private readonly CodeAnalyzer _analyzer;
 
@@ -77,7 +86,10 @@ public sealed class ProjectScanner : IProjectScanner
                 token.ThrowIfCancellationRequested();
                 entries = collected;
             }
-            catch (Exception exception) when (exception is IOException or UnauthorizedAccessException) { throw new IOException($"Cannot enumerate directory '{directory}'.", exception); }
+            catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+            {
+                continue;
+            }
             foreach (var path in entries)
             {
                 token.ThrowIfCancellationRequested();
@@ -89,26 +101,23 @@ public sealed class ProjectScanner : IProjectScanner
                     if (ignoredPaths.Contains(relativePath) || ignoredPatterns.Any(pattern => pattern.IsMatch("/" + relativePath))) continue;
                     if (attributes.HasFlag(FileAttributes.Directory) && ignoredDirectories.Contains(name)) continue;
                     if (!options.IncludeHidden && (name.StartsWith('.') || attributes.HasFlag(FileAttributes.Hidden))) continue;
-                    if (attributes.HasFlag(FileAttributes.ReparsePoint)) throw new IOException($"Symbolic links and junctions are not supported: {path}");
+                    if (attributes.HasFlag(FileAttributes.ReparsePoint)) continue;
                     if (attributes.HasFlag(FileAttributes.Directory))
                     {
                         pending.Push(path);
                         continue;
                     }
-                    files.Add(relativePath);
-                    processed++;
                     var extension = Path.GetExtension(path);
                     var binary = _catalog.IsBinaryExtension(path) || ContainsNullByte(path);
                     if (!binary)
                     {
                         var definition = _catalog.DetectTextType(path);
-                        Increment(counts, definition.Name, definition.Label);
-                        Increment(fileDetails, (definition.Name, extension));
                         if (definition.IsCode)
                         {
                             var bytes = await File.ReadAllBytesAsync(path, token).ConfigureAwait(false);
                             token.ThrowIfCancellationRequested();
-                            var text = new UTF8Encoding(false, true).GetString(bytes).TrimStart('\uFEFF');
+                            if (!TryDecodeText(bytes, out var text)) continue;
+                            text = text.TrimStart('\uFEFF');
                             var (lines, characters) = options.ExcludeBlankLinesAndComments
                                 ? _analyzer.Analyze(text, definition.CommentSyntax, token)
                                 : _analyzer.AnalyzeRaw(text, token);
@@ -116,8 +125,12 @@ public sealed class ProjectScanner : IProjectScanner
                             if (previous is null) previous = new(0, 0, 0);
                             code[definition.Name] = new(previous.Files + 1, previous.Lines + lines, previous.Characters + characters);
                         }
+                        Increment(counts, definition.Name, definition.Label);
+                        Increment(fileDetails, (definition.Name, extension));
                     }
                     if (options.IncludeAssets) AccumulateAsset(path, extension, binary, assets, assetDetails);
+                    files.Add(relativePath);
+                    processed++;
                     if (timer.ElapsedMilliseconds >= 100)
                     {
                         progress.Report(new(path, processed));
@@ -128,9 +141,13 @@ public sealed class ProjectScanner : IProjectScanner
                 {
                     throw new ArgumentException($"忽略路径正则匹配超时：regex:{exception.Pattern}。请简化表达式。", exception);
                 }
-                catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or DecoderFallbackException)
+                catch (DecoderFallbackException exception)
                 {
                     throw new IOException($"Scanning failed at '{path}': {exception.Message}", exception);
+                }
+                catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+                {
+                    continue;
                 }
             }
         }
@@ -154,6 +171,45 @@ public sealed class ProjectScanner : IProjectScanner
         if (statistics is null) statistics = new(0, 0);
         assets[asset.Name] = (asset.Label, new(statistics.Files + 1, statistics.Bytes + new FileInfo(path).Length));
         Increment(details, (asset.Name, extension));
+    }
+
+    private static bool TryDecodeText(byte[] bytes, out string text)
+    {
+        if (bytes.AsSpan().StartsWith(new byte[] { 0xEF, 0xBB, 0xBF }))
+            return TryDecode(StrictUtf8, bytes[3..], out text);
+        if (bytes.AsSpan().StartsWith(new byte[] { 0xFF, 0xFE }))
+            return TryDecode(StrictUtf16LittleEndian, bytes[2..], out text);
+        if (bytes.AsSpan().StartsWith(new byte[] { 0xFE, 0xFF }))
+            return TryDecode(StrictUtf16BigEndian, bytes[2..], out text);
+        if (TryDecode(StrictUtf8, bytes, out text)) return true;
+        if (OperatingSystem.IsWindows())
+        {
+            var codePages = new[]
+            {
+                Encoding.GetEncoding(0, EncoderFallback.ExceptionFallback, DecoderFallback.ExceptionFallback),
+                Encoding.GetEncoding(1252, EncoderFallback.ExceptionFallback, DecoderFallback.ExceptionFallback)
+            };
+            foreach (var encoding in codePages.DistinctBy(item => item.CodePage))
+            {
+                if (TryDecode(encoding, bytes, out text)) return true;
+            }
+        }
+        text = string.Empty;
+        return false;
+    }
+
+    private static bool TryDecode(Encoding encoding, byte[] bytes, out string text)
+    {
+        try
+        {
+            text = encoding.GetString(bytes);
+            return true;
+        }
+        catch (DecoderFallbackException)
+        {
+            text = string.Empty;
+            return false;
+        }
     }
 
     private static bool ContainsNullByte(string path)

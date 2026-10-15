@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using ProjectScope.Core;
@@ -225,6 +226,7 @@ public partial class MainViewModel : ObservableObject
         Summary = "扫描中";
         Log = "";
         State = ScanState.Scanning;
+        var stopwatch = Stopwatch.StartNew();
         try
         {
             var options = new ScanOptions(IncludeAssets, IncludeHidden)
@@ -234,11 +236,11 @@ public partial class MainViewModel : ObservableObject
                 ExcludeBlankLinesAndComments = ExcludeBlankLinesAndComments
             };
             var request = new ScanRequest(RootPath, options);
-            Status = "正在扫描…";
+            Status = $"正在扫描…（已耗时 {FormatElapsed(stopwatch.Elapsed)}）";
             var progress = new Progress<ScanProgress>(item =>
             {
                 if (State != ScanState.Scanning) return;
-                Status = $"已处理 {item.ProcessedFiles:N0} 个文件 · {item.CurrentPath}";
+                Status = $"正在扫描…（已耗时 {FormatElapsed(stopwatch.Elapsed)}） · 已处理 {item.ProcessedFiles:N0} 个文件 · {item.CurrentPath}";
                 AppendLog(Status);
             });
             var result = await _scanner.ScanAsync(request, progress, cancellationToken);
@@ -251,7 +253,8 @@ public partial class MainViewModel : ObservableObject
             Summary = $"{result.TotalFiles:N0} 个文件     {result.TotalCodeLines:N0} 行代码     {result.TotalCodeCharacters:N0} 字符     {ReportExporter.FormatBytes(result.TotalAssetBytes)} 资源";
             State = ScanState.Completed;
             HasResult = true;
-            Status = "扫描完成";
+            stopwatch.Stop();
+            Status = $"扫描完成（耗时 {FormatElapsed(stopwatch.Elapsed)})";
             AppendLog(Status);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -284,6 +287,15 @@ public partial class MainViewModel : ObservableObject
     {
         if (_result is null) throw new InvalidOperationException("没有完整的扫描结果，请先完成一次扫描。");
         return _result;
+    }
+
+    private static string FormatElapsed(TimeSpan elapsed)
+    {
+        return elapsed.TotalHours >= 1
+            ? $"{elapsed.TotalHours:F2}h"
+            : elapsed.TotalMinutes >= 1
+                ? $"{elapsed.TotalMinutes:F2}m"
+                : $"{elapsed.TotalSeconds:F2}s";
     }
 
     private void AppendLog(string message)

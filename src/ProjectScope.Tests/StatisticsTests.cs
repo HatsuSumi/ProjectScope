@@ -1,3 +1,4 @@
+using System.Text;
 using ProjectScope.Core;
 using ProjectScope.Infrastructure;
 
@@ -193,16 +194,46 @@ public sealed class StatisticsTests
     }
 
     [Fact]
-    public async Task ScannerRejectsInvalidUtf8InsteadOfReturningPartialStatistics()
+    public async Task ScannerSkipsLockedFilesAndContinuesScanning()
     {
         var root = Path.Combine(Path.GetTempPath(), "ProjectScope.Tests", Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(root);
-        await File.WriteAllBytesAsync(Path.Combine(root, "invalid.cs"), new byte[] { 0xff, 0xfe, 0xfd });
+        var lockedPath = Path.Combine(root, "locked.cs");
+        var readablePath = Path.Combine(root, "readable.cs");
+        await File.WriteAllTextAsync(lockedPath, "class Locked {}");
+        await File.WriteAllTextAsync(readablePath, "class Readable {}");
+        try
+        {
+            using var lockStream = new FileStream(lockedPath, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+            var scanner = new ProjectScanner(new FileCatalog(), new CodeAnalyzer());
+            var result = await scanner.ScanAsync(new(root, new ScanOptions(false, false)), new Progress<ScanProgress>(), CancellationToken.None);
+
+            Assert.Contains("readable.cs", result.Files);
+            if (OperatingSystem.IsWindows()) Assert.DoesNotContain("locked.cs", result.Files);
+        }
+        finally
+        {
+            Directory.Delete(root, true);
+        }
+    }
+
+    [Fact]
+    public async Task ScannerReadsLegacyWindowsTextWithoutFailingTheScan()
+    {
+        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+        var root = Path.Combine(Path.GetTempPath(), "ProjectScope.Tests", Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(root);
+        var legacyPath = Path.Combine(root, "legacy.ps1");
+        var readablePath = Path.Combine(root, "readable.cs");
+        await File.WriteAllBytesAsync(legacyPath, Encoding.GetEncoding(1252).GetBytes("# Copyright © 2026\nWrite-Host 'ok'"));
+        await File.WriteAllTextAsync(readablePath, "class Readable {}");
         try
         {
             var scanner = new ProjectScanner(new FileCatalog(), new CodeAnalyzer());
-            var exception = await Assert.ThrowsAsync<IOException>(() => scanner.ScanAsync(new(root, new ScanOptions(false, false)), new Progress<ScanProgress>(), CancellationToken.None));
-            Assert.Contains("invalid.cs", exception.Message);
+            var result = await scanner.ScanAsync(new(root, new ScanOptions(false, false)), new Progress<ScanProgress>(), CancellationToken.None);
+
+            Assert.Contains("legacy.ps1", result.Files);
+            Assert.Contains("readable.cs", result.Files);
         }
         finally
         {
