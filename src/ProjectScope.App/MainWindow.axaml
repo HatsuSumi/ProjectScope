@@ -3,6 +3,7 @@
         xmlns:local="using:ProjectScope.App"
         xmlns:media="using:Avalonia.Media"
         x:Class="ProjectScope.App.MainWindow" x:Name="RootWindow" x:DataType="local:MainViewModel"
+        Icon="avares://ProjectScope.App/Assets/projectscope_256.ico"
         Title="ProjectScope" Width="1180" Height="820" MinWidth="860" MinHeight="620"
         Background="{DynamicResource WindowBackgroundBrush}" FontSize="14">
   <Window.Styles>
@@ -248,9 +249,9 @@
                   <TextBlock Text="文件统计" FontWeight="SemiBold" />
                   <TextBlock Text="总文件数：28 个&#10;  C#文件：15 个&#10;  XML文件：2 个&#10;  JavaScript文件：1 个&#10;  Markdown文档：1 个&#10;  License文件：1 个&#10;  其他文件：8 个" />
                   <TextBlock Text="代码规模" FontWeight="SemiBold" Margin="0,6,0,0" />
-                  <TextBlock Text="代码总行数：2,113 行（不含空行、注释）&#10;  C#：1,654 行（78.3%）&#10;  XML：447 行（21.1%）&#10;  JavaScript：12 行（0.6%）&#10;&#10;字符总数：1,143,800 字符（不含注释）&#10;  C#：92,377 字符（8.1%）&#10;  XML：29,048 字符（2.5%）&#10;  JavaScript：1,022,375 字符（89.4%）" TextWrapping="Wrap" />
+                  <TextBlock Text="代码总行数：2,114 行（不含空行、注释）&#10;  C#：1,654 行（78.2%）&#10;  XML：448 行（21.2%）&#10;  JavaScript：12 行（0.6%）&#10;&#10;字符总数：1,143,974 字符（不含注释）&#10;  C#：92,377 字符（8.1%）&#10;  XML：29,222 字符（2.5%）&#10;  JavaScript：1,022,375 字符（89.4%）" TextWrapping="Wrap" />
                   <TextBlock Text="资源文件" FontWeight="SemiBold" Margin="0,6,0,0" />
-                  <TextBlock Text="资源文件总数：0 个&#10;资源文件总大小：0 B" />
+                  <TextBlock Text="资源文件总数：10 个&#10;资源文件总大小：39.20 MB&#10;  压缩包：1 个文件，38.78 MB&#10;  图片文件：6 个文件，361.43 KB&#10;  其他资源文件：3 个文件，71.94 KB" />
                 </StackPanel>
               </StackPanel>
             </ScrollViewer>
