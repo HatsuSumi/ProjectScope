@@ -7,6 +7,26 @@ namespace ProjectScope.Tests;
 public sealed class StatisticsTests
 {
     [Fact]
+    public void FileQueryMatchesNamesPathsCaseInsensitivelyAndReturnsAllMatches()
+    {
+        var files = new[]
+        {
+            "src/ProjectScope.App/MainViewModel.cs",
+            "src/ProjectScope.Tests/MainViewModelTests.cs",
+            "README.md"
+        };
+
+        var nameMatches = ProjectScope.App.MainViewModel.FindFileMatches(files, "MAINVIEWMODEL");
+        var pathMatches = ProjectScope.App.MainViewModel.FindFileMatches(files, @"projectscope.app\mainviewmodel.cs");
+
+        Assert.Equal(new[]
+        {
+            "src/ProjectScope.App/MainViewModel.cs",
+            "src/ProjectScope.Tests/MainViewModelTests.cs"
+        }, nameMatches);
+        Assert.Equal(new[] { "src/ProjectScope.App/MainViewModel.cs" }, pathMatches);
+    }
+    [Fact]
     public void FileCatalogRecognizesDartAsCode()
     {
         var definition = new FileCatalog().DetectTextType("lib/main.dart");

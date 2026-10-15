@@ -212,6 +212,12 @@
           <TabItem Header="目录树"><TextBox Classes="report" Text="{Binding DirectoryTree}" IsReadOnly="True" AcceptsReturn="True" TextWrapping="NoWrap" /></TabItem>
           <TabItem Header="文件清单"><TextBox Classes="report" Text="{Binding FileList}" IsReadOnly="True" AcceptsReturn="True" TextWrapping="NoWrap" /></TabItem>
           <TabItem Header="细分统计"><TextBox Classes="report" Text="{Binding Details}" IsReadOnly="True" AcceptsReturn="True" TextWrapping="NoWrap" /></TabItem>
+          <TabItem Header="文件查询">
+            <Grid RowDefinitions="Auto,*" RowSpacing="12" Margin="12">
+              <TextBox Text="{Binding FileQuery, Mode=TwoWay}" Watermark="输入文件名或路径，例如：MainViewModel.cs 或 src/ProjectScope.App" />
+              <TextBox Grid.Row="1" Classes="report" Text="{Binding FileQueryResult}" IsReadOnly="True" AcceptsReturn="True" TextWrapping="NoWrap" />
+            </Grid>
+          </TabItem>
           <TabItem Header="扫描日志"><TextBox Classes="report" Text="{Binding Log}" IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap" /></TabItem>
           <TabItem Header="关于">
             <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">

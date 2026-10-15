@@ -81,6 +81,8 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty] private string _directoryTree = "";
     [ObservableProperty] private string _fileList = "";
     [ObservableProperty] private string _details = "";
+    [ObservableProperty] private string _fileQuery = "";
+    [ObservableProperty] private string _fileQueryResult = "扫描完成后输入文件名或路径进行查询。";
     [ObservableProperty] private string _log = "";
     [ObservableProperty] private bool _hasResult;
     public bool CanConfigure => State != ScanState.Scanning;
@@ -206,6 +208,40 @@ public partial class MainViewModel : ObservableObject
         _applyTheme(value.Value);
     }
 
+    partial void OnFileQueryChanged(string value)
+    {
+        UpdateFileQueryResult(value);
+    }
+
+    private void UpdateFileQueryResult(string query)
+    {
+        if (_result is null)
+        {
+            FileQueryResult = "扫描完成后输入文件名或路径进行查询。";
+            return;
+        }
+        var normalizedQuery = query.Trim().Replace('\\', '/');
+        if (normalizedQuery.Length == 0)
+        {
+            FileQueryResult = "请输入文件名或路径。";
+            return;
+        }
+        var matches = FindFileMatches(_result.Files, normalizedQuery);
+        FileQueryResult = matches.Count == 0
+            ? $"未找到匹配文件：{query.Trim()}"
+            : $"找到 {matches.Count:N0} 个匹配文件：{Environment.NewLine}{string.Join(Environment.NewLine, matches)}";
+    }
+
+    public static IReadOnlyList<string> FindFileMatches(IEnumerable<string> files, string query)
+    {
+        var normalizedQuery = query.Trim().Replace('\\', '/');
+        if (normalizedQuery.Length == 0) return Array.Empty<string>();
+        return files
+            .Where(path => path.Contains(normalizedQuery, StringComparison.OrdinalIgnoreCase))
+            .OrderBy(path => path, StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+    }
+
     partial void OnStateChanged(ScanState value)
     {
         OnPropertyChanged(nameof(CanConfigure));
@@ -223,6 +259,8 @@ public partial class MainViewModel : ObservableObject
         DirectoryTree = "";
         FileList = "";
         Details = "";
+        FileQuery = "";
+        FileQueryResult = "扫描完成后输入文件名或路径进行查询。";
         Summary = "扫描中";
         Log = "";
         State = ScanState.Scanning;

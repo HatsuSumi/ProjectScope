@@ -23,6 +23,7 @@
   <ItemGroup>
     <ProjectReference Include="..\ProjectScope.Core\ProjectScope.Core.csproj" />
     <ProjectReference Include="..\ProjectScope.Infrastructure\ProjectScope.Infrastructure.csproj" />
+    <ProjectReference Include="..\ProjectScope.App\ProjectScope.App.csproj" />
   </ItemGroup>
 
 </Project>
